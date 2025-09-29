@@ -45,36 +45,49 @@
                                         @endforeach
                                     </div>
                                 </div>
-                                
-                                {{-- Comments Section --}}
-                                <div class="mt-4 ml-8">
-                                    {{-- Comment Form --}}
-                                    @auth
-                                    <form action="{{ route('posts.comments.store', $post) }}" method="POST" class="mb-4">
-                                        @csrf
-                                        <textarea name="body" rows="1" class="w-full border-gray-300 rounded-md shadow-sm" placeholder="Add a comment..."></textarea>
-                                        <x-primary-button class="mt-2">{{ __('Comment') }}</x-primary-button>
-                                    </form>
-                                    @endauth
 
-                                    {{-- Existing Comments --}}
-                                    <div class="space-y-3">
-                                        @foreach($post->comments->take(3) as $comment) {{-- แสดงแค่ 3 คอมเมนต์ล่าสุด --}}
+                                {{-- ส่วนล่างของโพสต์: จำนวนคอมเมนต์ + ปุ่ม --}}
+                                <div class="mt-4 flex justify-between items-center text-sm">
+                                    <div class="text-gray-500">
+                                        {{ $post->comments->count() }} {{ Str::plural('Comment', $post->comments->count()) }}
+                                    </div>
+                                    <a href="{{ route('posts.show', $post) }}" class="text-indigo-600 hover:underline font-semibold">
+                                        View Post & Comments &rarr;
+                                    </a>
+                                </div>
+
+                                {{-- แสดงคอมเมนต์ --}}
+                                @if ($post->comments->count())
+                                    <div class="mt-4 space-y-2">
+                                        @foreach ($post->comments as $comment)
                                             <div class="p-2 bg-gray-50 rounded-lg text-sm">
-                                                <p><strong>{{ $comment->user->name }}:</strong> {{ $comment->body }}</p>
+                                                <div class="flex justify-between items-start">
+                                                    <div>
+                                                        <strong>{{ $comment->user->name }}:</strong>
+                                                        <p class="inline">{{ $comment->body }}</p>
+                                                    </div>
+                                                    @can('update', $comment)
+                                                        <div class="flex space-x-2 text-xs">
+                                                            <a href="{{ route('comments.edit', $comment) }}" class="text-blue-600">Edit</a>
+                                                            <form action="{{ route('comments.destroy', $comment) }}" method="POST" onsubmit="return confirm('Are you sure?');">
+                                                                @csrf
+                                                                @method('DELETE')
+                                                                <button type="submit" class="text-red-600">Delete</button>
+                                                            </form>
+                                                        </div>
+                                                    @endcan
+                                                </div>
                                             </div>
                                         @endforeach
-                                        @if($post->comments->count() > 3)
-                                            <a href="{{ route('posts.show', $post) }}" class="text-sm text-gray-600 hover:underline">View all {{ $post->comments->count() }} comments...</a>
-                                        @endif
                                     </div>
-                                </div>
+                                @endif
                             </div>
                         @empty
                             <p class="text-gray-500">No posts available.</p>
                         @endforelse
                     </div>
 
+                    {{-- Pagination --}}
                     <div class="mt-6">
                         {{ $posts->links() }}
                     </div>
